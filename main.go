@@ -2,30 +2,37 @@ package main
 
 import (
 	"fmt"
+	"go_logger/logger"
 	"go_logger/writer"
-	"log"
-	"os"
+
 	"time"
 )
 
 func main() {
 	fmt.Println("start")
-	logger := log.New(os.Stdout, "test", log.Ldate|log.Ltime|log.LUTC)
-	fileWriter, _ := writer.NewFileWriter("test", "/mnt/d/Projects/ubuntu/go/go_logger/writer", writer.FileRotationPolicy{})
-	fmt.Println("file open")
-	n, err:= fileWriter.Write([]byte("sd\n"))
-	if err !=nil{
-		fmt.Println("error wirte", err)
-	}
-	fmt.Println("characters written", n)
 
-	n, err= fileWriter.Write([]byte("sd\n"))
-	if err !=nil{
-		fmt.Println("error wirte", err)
+	fileWriter, writererr := writer.NewFileWriter("test", "/home/architagr/repo/golang/go_logger/writer/log", writer.FileRotationPolicy{
+		MaxFileSize:    150,
+		MaxDaysPerFile: 10,
+	})
+
+	if writererr != nil {
+		fmt.Println(writererr)
+		panic(writererr)
 	}
-	fmt.Println("characters written", n)
-	time.Sleep(50*time.Second)
-	logger.Printf("hi")
+	loggerW, err := logger.NewLogger(fileWriter, fmt.Sprintf("%s|%s:%s|%s|%s", logger.Llongfile, logger.Ldate, logger.Ltime, logger.LType, logger.Lmsg), true, 1)
+	// logger := log.New(fileWriter, "test", log.Ldate|log.Ltime|log.LUTC)
+	if err == nil {
+		loggerW.Debug("sd1")
+
+		loggerW.Debug("sd2")
+		time.Sleep(2 * time.Second)
+		loggerW.Debug("sd3")
+
+		time.Sleep(50 * time.Second)
+		loggerW.Debug("sd new file")
+	}
+	//logger.Printf("hi")
 }
 
 // func main() {
